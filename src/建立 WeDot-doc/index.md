@@ -1,5 +1,18 @@
 # 建立 WeDot-doc
 
+## 进度
+
+- [X] Godot-docs
+  - [X] 格式转换
+- [ ] mdbook
+  - [X] 翻译
+  - [X] Pjax
+  - [ ] 翻译提示
+  - [ ] 版本控制
+- [ ] WeDot-docs
+  - [ ] 编译发行
+  - [ ] 引擎对接
+
 ## 方案
 
 `Wedot-Engine/WeDot-docs` 采用 mdbook 生成文档并发布到网页。

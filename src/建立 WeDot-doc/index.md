@@ -46,8 +46,9 @@ Godot-doc 使用 restructuredtext 编写。
 
 ### Godot-doc 工作流
 
-**开发者->文档**：
-在开发者完成对引擎的贡献后主动独立向 `godotengine/godot-docs` 提交文档更改。
+**开发者->引擎->持续集成->文档**：
+在开发者完成对引擎中`类`相关的 `doc/classes/` 内 xml 文档贡献后，每个星期六晚上（欧盟时间），
+持续集成使用脚本将引擎的 xml 文档转换为 .rst 文档向 `godotengine/godot-docs` 提交合并请求。
 
 **社区维护者->文档和教程**：
 社区维护者直接向 `godotengine/godot-docs` 提交文档更改。
@@ -57,6 +58,3 @@ Godot-doc 使用 restructuredtext 编写。
 
 **持续集成->发行**：
 每个星期一（UTC），持续集成使用 Sphinx 将文档编译成网页部署，用其他脚本编译 epub 发行。
-
-**持续集成->引擎**：
-每个星期六晚上（欧盟时间），持续集成使用脚本将 `classes/` 中`类`相关的文档转换为 xml 格式放入引擎的 `doc/classes/` 并提交合并请求。

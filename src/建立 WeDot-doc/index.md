@@ -4,14 +4,14 @@
 
 - [X] Godot-docs
   - [X] 格式转换
-- [ ] mdbook
+- [X] mdbook
   - [X] 翻译
   - [X] Pjax
-  - [ ] 翻译提示
-  - [ ] 版本控制
-- [ ] WeDot-docs
+  - [X] 翻译提示
+  - [X] 版本控制
+- [X] WeDot-docs
   - [ ] 编译发行
-  - [ ] 引擎对接
+  - [X] 引擎对接
 
 ## 方案
 
@@ -40,6 +40,8 @@ git module 更改由持续集成提交到 `Wedot-Engine/WeDot-docs`。
 或在引擎编译前用脚本将文档转换为 xml 格式。
 
 ## Godot-doc 分析
+
+在 doxygen 的 xml 里写 BBCode，用脚本解析 xml 里的 BBCode 佐字符串替换成 rst 后渲染成 html。
 
 Godot-doc 使用基于 Python 的文档生成工具 Sphinx 生成文档。
 Godot-doc 使用 restructuredtext 编写。

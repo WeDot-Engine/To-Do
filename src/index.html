@@ -2,7 +2,8 @@
 <html lang="zh-Hans">
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
-<!-- v 0.1.0 -->
+<!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
+<!-- v 0.1.2 -->
 
 <head>
   <meta charset="utf-8">
@@ -120,6 +121,54 @@
         }
       }
 
+      //// 检查并提示翻译
+      function infoTranslate() {
+        try {
+          var currentLang = translate.language.getCurrent();
+          var originalLang = translate.language.getLocal();
+          if (currentLang !== originalLang) {
+            const translateInfo = document.querySelectorAll('#translate-info');
+            if (translateInfo) {
+              translateInfo.forEach(function (item) {
+                item.remove();
+              })
+            }
+            // 获取 #c 元素
+            var mainElements = document.querySelector('#c');
+            var bq = document.createElement('blockquote');
+            bq.id = 'translate-info';
+
+            var infoBody = document.createElement('p');
+            infoBody.innerText = '当前页面为翻译版本。';
+            var msgBody = document.createElement('p');
+
+            var langIcon = document.createElement('i');
+            langIcon.classList.add('fa');
+            langIcon.classList.add('fa-language');
+
+            var switchButton = document.createElement('a');
+            switchButton.href = 'javascript:;';
+            switchButton.title = '切换到原语言';
+            switchButton.innerText = ' 切换到文章原本的语言';
+
+            msgBody.appendChild(langIcon);
+            msgBody.appendChild(switchButton);
+
+            bq.appendChild(infoBody);
+            bq.appendChild(msgBody);
+
+            mainElements.insertBefore(bq, mainElements.children[1]);
+
+            switchButton.addEventListener('click', function () {
+              translate.changeLanguage(originalLang);
+            });
+            translate.execute();
+          }
+        } catch (e) {
+          console.error('检查并提示翻译出错：' + e);
+        }
+      }
+
       // 更新 p 值
       function updatePValue() {
         url = new URL(window.location.href);
@@ -157,43 +206,45 @@
       }
 
       // 根据指定文件读取并解析
-      const showMarkdown = async (path) => {
+      const showMarkdown = async (path, response = null) => {
         try {
           const absolutePath = new URL(path, 'http://example.com').pathname;
-          const response = await fetch(absolutePath);
-          if (response.ok) {
-            const markdown = await response.text();
-            var content = marked.parse(markdown);
-            content = `<blockquote><code>${decodeURIComponent(absolutePath)}</code></blockquote>${content}`;
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(content, 'text/html');
-            const links = doc.querySelectorAll('a[href$=".md"]');
-            links.forEach(link => {
-              var href = link.getAttribute('href');
-              /* 
-                  如果 href 是相对路径，则在其前加上当前读取的文档的绝对路径；
-                  如果不存在当前读取的文档（默认读取的 index.md 或 README.md），
-                  则在其前加上 markdown.html 的绝对路径。
-               */
-              if (isRelativePath(href)) {
-                if (pValue) {
-                  href = getDirectory(absolutePath) + href;
-                } else {
-                  href = getPath() + href;
-                }
-                const absoluteHref = new URL(href, 'http://example.com').pathname;
-                link.setAttribute('href', `${window.location.pathname}?p=${absoluteHref}`);
-              } else if (href.startsWith('/')) {
-                link.setAttribute('href', `${window.location.pathname}?p=${href}`);
-              }
-            });
-            content = doc.body.innerHTML;
-            document.getElementById('c').innerHTML = content;
-            const firstH1 = document.querySelector('h1');
-            document.title = firstH1 ? firstH1.textContent : absolutePath;
-          } else {
-            throw new Error('请求失败');
+          if (!response) {
+            response = await fetch(absolutePath);
+            if (!response.ok) {
+              throw new Error('请求失败');
+            }
           }
+          const markdown = await response.text();
+          var content = marked.parse(markdown);
+          content = `<blockquote><code>${decodeURIComponent(absolutePath)}</code></blockquote>${content}`;
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(content, 'text/html');
+          const links = doc.querySelectorAll('a[href$=".md"]');
+          links.forEach(link => {
+            var href = link.getAttribute('href');
+            /* 
+              如果 href 是相对路径，则在其前加上当前读取的文档的绝对路径；
+              如果不存在当前读取的文档（默认读取的 index.md 或 README.md），
+              则在其前加上 markdown.html 的绝对路径。
+             */
+            if (isRelativePath(href)) {
+              if (pValue) {
+                href = getDirectory(absolutePath) + href;
+              } else {
+                href = getPath() + href;
+              }
+              const absoluteHref = new URL(href, 'http://example.com').pathname;
+              link.setAttribute('href', `${window.location.pathname}?p=${absoluteHref}`);
+            } else if (href.startsWith('/')) {
+              link.setAttribute('href', `${window.location.pathname}?p=${href}`);
+            }
+          });
+          content = doc.body.innerHTML;
+          document.getElementById('c').innerHTML = content;
+          const firstH1 = document.querySelector('h1');
+          document.title = firstH1 ? firstH1.textContent : absolutePath;
+          infoTranslate();	//// 检查并提示翻译
         } catch (error) {
           document.getElementById('c').innerHTML = '<h1>加载失败</h1><p><a href="">重试</a></p>';
           console.error(error);
@@ -226,7 +277,7 @@
           } else {
             const response = await fetch(getPath() + 'index.md');
             if (response.ok) {
-              await showMarkdown(getPath() + 'index.md');
+              await showMarkdown(getPath() + 'index.md', response);
             } else {
               await showMarkdown(getPath() + 'README.md');
             }

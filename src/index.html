@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 0.1.4 -->
+<!-- v 0.5.1 -->
 
 <head>
   <meta charset="utf-8">
@@ -252,19 +252,20 @@
       };
 
       // 初始化自定义 Pjax
-      function initContentPjax() {
+      function initCostumedPjax() {
         document.querySelector('#c').addEventListener('click', function (event) {
-          const link = event.target.closest('a[href$=".md"]');
-          if (link) {
-            try {
-              if (history && history.pushState) {
+          if (history && history.pushState) {
+            const link = event.target.closest('a[href$=".md"]');
+            if (link && link.id !== 'pjax-link') {
+              try {
+                link.id = 'pjax-link';
                 event.preventDefault();
                 startLoad();
                 showMarkdown(decodePath(link.href));
                 history.pushState({ url: link.href, title: document.title, uid: link.href }, null, link.href);
+              } catch (e) {
+                console.error('自定义 Pjax 出错：' + e);
               }
-            } catch (e) {
-              console.error('自定义 Pjax 出错：' + e);
             }
           }
         });
@@ -325,7 +326,7 @@
       //// 文档内容加载完毕时触发
       function showMarkdownEnded() {
         infoTranslate();	//// 检查并提示翻译
-        initContentPjax();	//// 初始化自定义 Pjax
+        initCostumedPjax();	//// 初始化自定义 Pjax
         endLoad();
       }
     })();
@@ -404,6 +405,17 @@
       overflow-x: hidden;
       padding: 30px;
       box-shadow: 0 2px 6px rgba(100, 100, 100, .3);
+    }
+
+    #c img,
+    #c video,
+    #c iframe,
+    #c object,
+    #c embed,
+    #c svg,
+    #c canvas,
+    #c audio {
+      max-width: 100%;
     }
 
     /* Markdown 样式 */

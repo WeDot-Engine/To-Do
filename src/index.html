@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 0.1.2 -->
+<!-- v 0.1.4 -->
 
 <head>
   <meta charset="utf-8">
@@ -244,24 +244,25 @@
           document.getElementById('c').innerHTML = content;
           const firstH1 = document.querySelector('h1');
           document.title = firstH1 ? firstH1.textContent : absolutePath;
-          infoTranslate();	//// 检查并提示翻译
+          showMarkdownEnded();
         } catch (error) {
-          document.getElementById('c').innerHTML = '<h1>加载失败</h1><p><a href="">重试</a></p>';
+          document.getElementById('c').innerHTML = '<h1>加载失败</h1><p>文档可能不存在。您可以尝试<a href="">重试</a>。</p>';
           console.error(error);
         }
       };
 
-      // 初始化自定义链接 Pjax
-      function _initContentPjax() {
+      // 初始化自定义 Pjax
+      function initContentPjax() {
         document.querySelector('#c').addEventListener('click', function (event) {
           const link = event.target.closest('a[href$=".md"]');
           if (link) {
             try {
-              event.preventDefault();
-              startLoad();
-              showMarkdown(decodePath(link.href));
-              history.pushState(null, null, link.href);
-              endLoad();
+              if (history && history.pushState) {
+                event.preventDefault();
+                startLoad();
+                showMarkdown(decodePath(link.href));
+                history.pushState({ url: link.href, title: document.title, uid: link.href }, null, link.href);
+              }
             } catch (e) {
               console.error('自定义 Pjax 出错：' + e);
             }
@@ -296,7 +297,6 @@
       // 初始化
       function initialize() {
         initDarkmode();	//// 初始化深色模式
-        // initContentPjax();	//// 初始化自定义链接 Pjax
         initHomeBtn();	//// 初始化返回首页按钮
         initContent();	//// 初始化内容
         initTranslate();	//// 初始化页面翻译
@@ -322,6 +322,12 @@
         translate.execute();    // 手动触发翻译，但是理论上 translate-js 会监听页面变化
         endLoad();
       })
+      //// 文档内容加载完毕时触发
+      function showMarkdownEnded() {
+        infoTranslate();	//// 检查并提示翻译
+        initContentPjax();	//// 初始化自定义 Pjax
+        endLoad();
+      }
     })();
   </script>
   <title>加载中</title>

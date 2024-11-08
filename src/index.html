@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 0.5.3 -->
+<!-- v 0.6.0 -->
 
 <head>
   <meta charset="utf-8">
@@ -102,6 +102,23 @@
         }
       }
 
+      // 初始化返回按钮
+      function initBackBtn() {
+        try {
+          document.querySelector('nav').addEventListener('click', function (event) {
+            if (event.target.closest('#back-btn')) {
+              try {
+                window.history.back();
+              } catch (e) {
+                console.error('返回按钮出错：' + e);
+              }
+            }
+          });
+        } catch (e) {
+          console.error('初始化返回按钮出错：' + e);
+        }
+      }
+
       // Darkmode.js 深色模式
       function initDarkmode() {
         try {
@@ -110,7 +127,7 @@
             return;
           };
           var darkmode = new Darkmode();
-          document.body.addEventListener('click', function (event) {
+          document.querySelector('nav').addEventListener('click', function (event) {
             if (event.target.closest('#dark_b')) {
               try {
                 darkmode.toggle();
@@ -308,6 +325,7 @@
       // 初始化
       function initialize() {
         initDarkmode();	//// 初始化深色模式
+        initBackBtn();	//// 初始化返回按钮
         initHomeBtn();	//// 初始化返回首页按钮
         initContent();	//// 初始化内容
         initTranslate();	//// 初始化页面翻译
@@ -528,13 +546,13 @@
       background-color: #616161;
       color: inherit;
       z-index: 10;
-      width: 25%;
+      width: 17%;
       height: 100%;
       opacity: 0;
       cursor: pointer;
       position: absolute;
       top: 0;
-      left: 25%;
+      left: 50%;
     }
 
     /* 深色模式相关 */
@@ -572,6 +590,8 @@
   <div class="background"></div>
   <!-- 导航栏 -->
   <nav>
+    <a title="返回" id="back-btn"><i class="fa fa-backward"></i></a>
+    <a title="刷新" href=""><i class="fa fa-arrows-rotate"></i></a>
     <a title="主页" id="to-home"><i class="fa fa-home"></i></a>
     <a title="更改语言" id="translate"><i class="fa fa-language"></i></a>
     <a title="切换显示模式" id="dark_b" href="javascript:;"><i class="fa fa-adjust"></i></a>

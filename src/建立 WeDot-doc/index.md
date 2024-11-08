@@ -6,7 +6,7 @@
   - [X] 格式转换
 - [X] mdbook
   - [X] 翻译
-  - [X] Pjax
+  - [X] PJAX
   - [X] 翻译提示
   - [X] 版本控制
 - [X] WeDot-docs
@@ -18,13 +18,13 @@
 `Wedot-Engine/WeDot-docs` 采用 mdbook 生成文档并发布到网页。
 `Wedot-Engine/WeDot-docs` 文档采用 markdown 编写。
 
-仓库同时托管在 `Wedot-Engine/WeDot-docs` 和以 git module 的方式存在 `Wedot-Engine/WeDot` 内。
+仓库托管在 `Wedot-Engine/WeDot-docs`。
 
 ### 工作流
 
 **开发者->持续集成->文档**：
-开发者在对引擎的贡献时同步向 git module 提交文档更改。
-git module 更改由持续集成提交到 `Wedot-Engine/WeDot-docs`。
+开发者在对引擎的贡献时向引擎 `xml` 文档提交文档更改。
+`xml` 文档更改由持续集成提交到 `Wedot-Engine/WeDot-docs`。
 
 **社区维护者->文档和教程**：
 社区维护者直接向 `Wedot-Engine/WeDot-docs` 提交文档更改。
@@ -36,12 +36,11 @@ git module 更改由持续集成提交到 `Wedot-Engine/WeDot-docs`。
 每周使用 mdbook 编译并部署。
 
 **引擎编译**：
-当引擎编译时，引擎直接读取 markdown 文档，这样能直接获得脱离文档网站的完整离线文档；
-或在引擎编译前用脚本将文档转换为 xml 格式。
+当引擎编译时，引擎读取 `xml` 文档。
 
 ## Godot-doc 分析
 
-在 doxygen 的 xml 里写 BBCode，用脚本解析 xml 里的 BBCode 佐字符串替换成 rst 后渲染成 html。
+在 doxygen 的 `xml` 里写 BBCode，用脚本解析 xml 里的 BBCode 佐字符串替换成 rst 后渲染成 html。
 
 Godot-doc 使用基于 Python 的文档生成工具 Sphinx 生成文档。
 Godot-doc 使用 restructuredtext 编写。
@@ -49,8 +48,8 @@ Godot-doc 使用 restructuredtext 编写。
 ### Godot-doc 工作流
 
 **开发者->引擎->持续集成->文档**：
-在开发者完成对引擎中`类`相关的 `doc/classes/` 内 xml 文档贡献后，每个星期六晚上（欧盟时间），
-持续集成使用脚本将引擎的 xml 文档转换为 .rst 文档向 `godotengine/godot-docs` 提交合并请求。
+在开发者完成对引擎中`类`相关的 `doc/classes/` 内 `xml` 文档贡献后，每个星期六晚上（欧盟时间），
+持续集成使用脚本将引擎的 `xml` 文档转换为 .rst 文档向 `godotengine/godot-docs` 提交合并请求。
 
 **社区维护者->文档和教程**：
 社区维护者直接向 `godotengine/godot-docs` 提交文档更改。

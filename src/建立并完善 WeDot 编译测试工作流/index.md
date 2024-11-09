@@ -32,7 +32,7 @@
 
 [**当对 `godotengine/godot` 仓库提交修改时**](https://github.com/godotengine/godot/blob/master/.github/workflows/runner.yml)：
 
-- [语法检查]：仅检查本次提交修改的文件。尽量先执行语法检查，这样在语法检查不过关时跳过费资源的编译测试。
+- [语法检查](https://github.com/godotengine/godot/blob/master/.github/workflows/static_checks.yml)：仅检查本次提交修改的文件。尽量先执行语法检查，这样在语法检查不过关时跳过费资源的编译测试。
 - [Android 编译](https://github.com/godotengine/godot/blob/master/.github/workflows/android_builds.yml)：
   - 支持多个目标平台编译，包括编辑器和不同架构的模板。
   - 缓存机制用于加速构建过程。

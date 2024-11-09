@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 0.6.0 -->
+<!-- v 0.6.2 -->
 
 <head>
   <meta charset="utf-8">
@@ -25,7 +25,7 @@
       // 文档解析功能相关
       var url = new URL(window.location.href);
       var params = new URLSearchParams(url.search);
-      var pValue = params.get('p');
+      var pValue = formatPath(params.get('p'));
 
       // Pjax 相关
       let pjax;
@@ -201,7 +201,7 @@
       function updatePValue() {
         url = new URL(window.location.href);
         params = new URLSearchParams(url.search);
-        pValue = params.get('p');
+        pValue = formatPath(params.get('p'));
       }
 
       // 获取文件所在目录
@@ -236,16 +236,15 @@
       // 根据指定文件读取并解析
       const showMarkdown = async (path, response = null) => {
         try {
-          const absolutePath = new URL(path, 'http://example.com').pathname;
           if (!response) {
-            response = await fetch(absolutePath);
+            response = await fetch(path);
             if (!response.ok) {
               throw new Error('请求失败');
             }
           }
           const markdown = await response.text();
           var content = marked.parse(markdown);
-          content = `<blockquote><code>${decodeURIComponent(absolutePath)}</code></blockquote>${content}`;
+          content = `<blockquote><code>${decodeURIComponent(path)}</code></blockquote>${content}`;
           const parser = new DOMParser();
           const doc = parser.parseFromString(content, 'text/html');
           const links = doc.querySelectorAll('a[href$=".md"]');
@@ -258,7 +257,7 @@
              */
             if (isRelativePath(href)) {
               if (pValue) {
-                href = getDirectory(absolutePath) + href;
+                href = getDirectory(path) + href;
               } else {
                 href = getPath() + href;
               }
@@ -271,13 +270,24 @@
           content = doc.body.innerHTML;
           document.getElementById('c').innerHTML = content;
           const firstH1 = document.querySelector('h1');
-          document.title = firstH1 ? firstH1.textContent : absolutePath;
+          document.title = firstH1 ? firstH1.textContent : path;
           showMarkdownEnded();
         } catch (error) {
-          document.getElementById('c').innerHTML = '<h1>加载失败</h1><p>文档可能不存在。您可以尝试<a href="">重试</a>。</p>';
+          document.getElementById('c').innerHTML = `<h1>加载失败</h1><p>文档<code>${path}</code>可能不存在。您可以尝试<a href="">重试</a>。</p>`;
           console.error(error);
         }
       };
+
+      // 格式化路径
+      function formatPath(path) {
+        if (path) {
+          path = new URL(path, 'http://example.com').pathname;
+          if (!path.endsWith('.md')) {
+            path += 'index.md';
+          }
+        }
+        return path;
+      }
 
       // 初始化自定义 PJAX
       function initCostumedPjax() {
@@ -332,6 +342,9 @@
         initPjax();	//// 初始化 Pjax
         initCostumedPjax();	//// 初始化自定义 PJAX
         initAni();	//// 初始化加载动画
+        if (existPushState) {
+          history.pushState({ url: window.location.href, title: document.title, uid: window.location.href }, null, window.location.href);
+        }
       }
 
       // 触发器
@@ -351,7 +364,6 @@
         initContent();
         translate.execute();    // 手动触发翻译，但是理论上 translate-js 会监听页面变化
         initCostumedPjax();	//// 初始化自定义 PJAX
-        endLoad();
       })
       //// 文档内容加载完毕时触发
       function showMarkdownEnded() {
@@ -368,6 +380,10 @@
     * {
       font-family: 'Exo', sans-serif;
       text-decoration: none;
+    }
+
+    :root {
+      background-color: #e6e6e6;
     }
 
     ::selection {
@@ -587,7 +603,6 @@
 </head>
 
 <body>
-  <div class="background"></div>
   <!-- 导航栏 -->
   <nav>
     <a title="返回" id="back-btn"><i class="fa fa-backward"></i></a>
@@ -609,6 +624,7 @@
     <div class="progress"></div>
   </div>
 
+  <div class="background"></div>
   <script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-y/instant.page/5.1.0/instantpage.min.js"
     type="text/javascript"></script>
 </body>

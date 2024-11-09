@@ -58,7 +58,7 @@
   - 测试 Godot 项目和项目转换器。
   - 上传构建产物作为 artifacts。
 - [macOS 编译](https://github.com/godotengine/godot/blob/master/.github/workflows/macos_builds.yml)：
-  - 持在最新版本的 macOS 上进行编译。
+  - 在最新版本的 macOS 上进行编译。
   - 缓存机制用于加速构建过程。
   - 设置 Python 和 SCons 环境以支持构建需求。
   - 安装 Vulkan SDK 以支持相关功能。

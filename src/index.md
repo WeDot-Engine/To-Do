@@ -1,5 +1,6 @@
 # [WeDot 引擎](https://WeDot.top)的 To-Do 列表
 
+- [ ] [WeDot 本地资产管理](WeDot%20本地资产管理/index.md)
 - [ ] [建立 WeDot 资产库](建立%20WeDot%20资产库/index.md)
 - [ ] [网站 SEO 优化](网站%20SEO%20优化/index.md)
 - [ ] [重塑命名](重塑命名/index.md)

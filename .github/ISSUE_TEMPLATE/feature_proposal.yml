@@ -1,0 +1,52 @@
+name: 功能实现提案
+description: 提出一个可能的方案来解决 WeDot 引擎的限制
+body:
+
+- type: markdown
+  attributes:
+    value: |
+      - 在上方写一个描述性的提案标题。
+      - 搜索[开放的](https://github.com/Wedot-Engine/To-Do/issues)和[已关闭的](https://github.com/Wedot-Engine/To-Do/issues?q=is%3Aissue+is%3Aclosed)提案，确保该功能尚未被建议过。
+
+- type: textarea
+  attributes:
+    label: 描述您正在从事的项目
+    description: 了解提出该功能的*背景*非常重要。在实际项目中使用的功能更有可能被添加。
+    placeholder: 示例 - "一个大量使用类定格动画风格的 3D 太空游戏"
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: 描述您在项目中遇到的问题或限制
+    placeholder: 示例 - "3D 选择工具使用起来很麻烦。"
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: 描述该功能/增强功能及其如何帮助克服问题或限制
+    placeholder: 示例 - "添加快捷键以快速选择节点组。"
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: 描述您的提案将如何工作，包括代码、伪代码、示意图和/或图表
+    placeholder: 示例 - "当用户按下 Ctrl + Shift + G 时，选择所有具有该组的节点..."
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: 如果此增强功能不经常使用，是否可以通过几行脚本绕过？
+    placeholder: 示例 - "这可以通过编辑器插件来实现，但并不是特别方便。"
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: 是否有理由将其作为核心功能而不是资产库中的插件？
+    placeholder: 示例 - "这是为了提高 3D 编辑器的开箱即用可用性。"
+  validations:
+    required: true

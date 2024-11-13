@@ -1,0 +1,11 @@
+# 所有提案都必须遵循模板，因此不允许创建空 issue。
+blank_issues_enabled: false
+
+contact_links:
+  - name: 分享和讨论想法
+    url: https://github.com/Wedot-Engine/To-Do/discussions
+    about: 讨论与改进 WeDot 相关的任何想法
+
+  - name: 主 WeDot 仓库
+    url: https://github.com/Wedot-Engine/WeDot
+    about: 在主 WeDot 仓库报告 bug

@@ -14,4 +14,5 @@
 
 ## 参考
 
-[Redot 的更改](https://github.com/Redot-Engine/redot-engine/commit/d5fc3d1e8c1f8f904e1fbe8bd1c402d560bfb596)
+[Redot 替换图标的更改](https://github.com/Redot-Engine/redot-engine/commit/471dd5651e8ed2e28905ba758379e08c62243c0c)
+[Redot 重新命名的更改](https://github.com/Redot-Engine/redot-engine/commit/d5fc3d1e8c1f8f904e1fbe8bd1c402d560bfb596)

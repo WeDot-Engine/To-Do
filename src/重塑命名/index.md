@@ -10,3 +10,7 @@
 - [ ] 代码内 Godot 相关元素替换
 - [ ] 插件名称替换
 - [ ] 文档选择性覆写
+
+## 参考
+
+[Redot 的更改](https://github.com/Redot-Engine/redot-engine/commit/d5fc3d1e8c1f8f904e1fbe8bd1c402d560bfb596)

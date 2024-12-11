@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 0.6.2 -->
+<!-- v 0.9.0 -->
 
 <head>
   <meta charset="utf-8">
@@ -23,12 +23,14 @@
       var timer = null;
 
       // 文档解析功能相关
-      var url = new URL(window.location.href);
-      var params = new URLSearchParams(url.search);
-      var pValue = formatPath(params.get('p'));
+      var existIndexPage = true;  // 是否存在索引页
+      const pValue = formatPath(decodePath(window.location.href));
 
       // Pjax 相关
       let pjax;
+
+      // 深色模式相关
+      let darkmode;
 
       // 自定义 PJAX 相关
       const existPushState = (history && history.pushState);
@@ -102,23 +104,6 @@
         }
       }
 
-      // 初始化返回按钮
-      function initBackBtn() {
-        try {
-          document.querySelector('nav').addEventListener('click', function (event) {
-            if (event.target.closest('#back-btn')) {
-              try {
-                window.history.back();
-              } catch (e) {
-                console.error('返回按钮出错：' + e);
-              }
-            }
-          });
-        } catch (e) {
-          console.error('初始化返回按钮出错：' + e);
-        }
-      }
-
       // Darkmode.js 深色模式
       function initDarkmode() {
         try {
@@ -126,16 +111,7 @@
             console.warn('Darkmode.js 不存在？');
             return;
           };
-          var darkmode = new Darkmode();
-          document.querySelector('nav').addEventListener('click', function (event) {
-            if (event.target.closest('#dark_b')) {
-              try {
-                darkmode.toggle();
-              } catch (e) {
-                console.error('Darkmode.js 出错：' + e);
-              }
-            }
-          });
+          darkmode = new Darkmode();
         } catch (e) {
           console.error('初始化 Darkmode.js 出错：' + e);
         }
@@ -167,6 +143,7 @@
             langIcon.classList.add('fa-language');
 
             var switchButton = document.createElement('a');
+            switchButton.id = 'translate-switch';
             switchButton.href = 'javascript:;';
             switchButton.title = '切换到原语言';
             switchButton.innerText = ' 切换到文章原本的语言';
@@ -178,10 +155,6 @@
             bq.appendChild(msgBody);
 
             mainElements.insertBefore(bq, mainElements.children[1]);
-
-            switchButton.addEventListener('click', function () {
-              translate.changeLanguage(originalLang);
-            });
           }
         } catch (e) {
           console.error('检查并提示翻译出错：' + e);
@@ -195,13 +168,6 @@
         } catch (e) {
           console.error('刷新翻译出错：' + e);
         }
-      }
-
-      // 更新 p 值
-      function updatePValue() {
-        url = new URL(window.location.href);
-        params = new URLSearchParams(url.search);
-        pValue = formatPath(params.get('p'));
       }
 
       // 获取文件所在目录
@@ -273,6 +239,7 @@
           document.title = firstH1 ? firstH1.textContent : path;
           showMarkdownEnded();
         } catch (error) {
+          document.title = '加载失败'
           document.getElementById('c').innerHTML = `<h1>加载失败</h1><p>文档<code>${path}</code>可能不存在。您可以尝试<a href="">重试</a>。</p>`;
           console.error(error);
         }
@@ -283,6 +250,9 @@
         if (path) {
           path = new URL(path, 'http://example.com').pathname;
           if (!path.endsWith('.md')) {
+            if (!path.endsWith('/')) {
+              path += '/';
+            }
             path += 'index.md';
           }
         }
@@ -314,9 +284,14 @@
           if (pValue) {
             await showMarkdown(pValue);
           } else {
-            const response = await fetch(getPath() + 'index.md');
-            if (response.ok) {
-              await showMarkdown(getPath() + 'index.md', response);
+            if (existIndexPage) {
+              const response = await fetch(getPath() + 'index.md');
+              if (response.ok) {
+                await showMarkdown(getPath() + 'index.md', response);
+              } else {
+                existIndexPage = false;
+                await showMarkdown(getPath() + 'README.md');
+              }
             } else {
               await showMarkdown(getPath() + 'README.md');
             }
@@ -335,7 +310,6 @@
       // 初始化
       function initialize() {
         initDarkmode();	//// 初始化深色模式
-        initBackBtn();	//// 初始化返回按钮
         initHomeBtn();	//// 初始化返回首页按钮
         initContent();	//// 初始化内容
         initTranslate();	//// 初始化页面翻译
@@ -360,11 +334,20 @@
       });
       //// 监听 Pjax 完成后，重新加载
       document.addEventListener('pjax:complete', function () {
-        updatePValue();
         initContent();
         translate.execute();    // 手动触发翻译，但是理论上 translate-js 会监听页面变化
         initCostumedPjax();	//// 初始化自定义 PJAX
-      })
+      });
+      //// 点击事件委托
+      document.addEventListener('click', function(event) {
+        if (event.target.closest('#back-btn')) {
+          window.history.back();
+        } else if (event.target.closest('#dark_b')) {
+          darkmode.toggle();
+        } else if (event.target.closest('#translate-switch')) {
+          translate.changeLanguage(translate.language.getLocal());
+        }
+      });
       //// 文档内容加载完毕时触发
       function showMarkdownEnded() {
         refreshTranslate();

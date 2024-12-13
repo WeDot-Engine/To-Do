@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 0.9.0 -->
+<!-- v 1.0.0 -->
 
 <head>
   <meta charset="utf-8">
@@ -18,31 +18,29 @@
     // 使用 IIFE 包裹以避免全局变量污染
     (function () {
       // 加载动画相关
-      var loadingBar = document.querySelector('.loading-bar');
-      var progress = document.querySelector('.loading-bar .progress');
       var timer = null;
 
       // 文档解析功能相关
       var existIndexPage = true;  // 是否存在索引页
-      const pValue = formatPath(decodePath(window.location.href));
+      async function getPValue() {
+        return await decodeMDPath(window.location.href);
+      }
 
-      // Pjax 相关
-      let pjax;
+      // PJAX 相关
+      let PJAX;
 
       // 深色模式相关
       let darkmode;
 
       // 自定义 PJAX 相关
       const existPushState = (history && history.pushState);
-
-      // 初始化加载动画相关元素
-      function initAni() {
-        loadingBar = document.querySelector('.loading-bar');
-        progress = document.querySelector('.loading-bar .progress');
-      }
+      var level = 1;  // 当前页面的层级
+      var lastLevel = 0;
 
       // 开始加载动画
       function startLoad() {
+        const loadingBar = document.querySelector('.loading-bar');
+        const progress = document.querySelector('.loading-bar .progress');
         var loadingBarWidth = 20;
         var MAX_LOADING_WIDTH = 95;
 
@@ -63,6 +61,8 @@
 
       // 停止加载动画
       function endLoad() {
+        const loadingBar = document.querySelector('.loading-bar');
+        const progress = document.querySelector('.loading-bar .progress');
         clearInterval(timer);
         progress.style.width = '100%';
         loadingBar.classList.remove('loading');
@@ -73,10 +73,10 @@
       }
 
       // 初始化 PJAX
-      function initPjax() {
+      function initPJAX() {
         try {
           const Pjax = window.Pjax || function () { };
-          pjax = new Pjax({
+          PJAX = new Pjax({
             selectors: [
               'head title',
               '#c',
@@ -174,7 +174,7 @@
       function getDirectory(path) {
         path = new URL(path, 'http://example.com').pathname;
         const lastSlashIndex = path.lastIndexOf('/');
-        return path.substring(0, lastSlashIndex) + '/';
+        return path.substring(0, lastSlashIndex + 1);
       }
 
       // 获取 markdown.html 的当前路径
@@ -183,10 +183,49 @@
       }
 
       // 将 ?p= 后面的值转换为绝对路径
-      function decodePath(path) {
+      /* 
+        输出的值是 /path/to/file.md
+        当其为 null 时，根据是否存在 index.md 文件来决定返回的值
+       */
+      async function decodeMDPath(path) {
         const url = new URL(path);
         const params = new URLSearchParams(url.search);
-        return params.get('p');
+        path = formatMDPath(params.get('p'));
+        // 如果 path 为 null
+        if (!path) {
+          const currentDir = getPath();
+          // 如果存在 index.md 文件，则返回 index.md，否则返回 README.md
+          if (existIndexPage) {
+            const response = await fetch(currentDir + 'index.md');
+            if (response.ok) {
+              path = currentDir + 'index.md';
+            } else {
+              existIndexPage = false;
+              path = currentDir + 'README.md';
+            }
+          } else {
+            path = currentDir + 'README.md';
+          }
+        }
+        return path;
+      }
+
+      // 格式化路径
+      /* 
+        如果 mdPath 为 null，则返回 null，如果 mdPath 是路径，则返回该路径下 /index.md
+        return: 返回格式化后的文件路径，一定是绝对路径，或者 null
+       */
+      function formatMDPath(mdPath) {
+        if (mdPath) {
+          mdPath = new URL(mdPath, 'http://example.com').pathname;
+          if (!mdPath.endsWith('.md')) {
+            if (!mdPath.endsWith('/')) {
+              mdPath += '/';
+            }
+            mdPath += 'index.md';
+          }
+        }
+        return mdPath;
       }
 
       // 判断路径是否为相对路径
@@ -199,77 +238,86 @@
         return currentDomain === targetDomain;
       }
 
-      // 根据指定文件读取并解析
-      const showMarkdown = async (path, response = null) => {
-        try {
-          if (!response) {
-            response = await fetch(path);
-            if (!response.ok) {
-              throw new Error('请求失败');
-            }
-          }
-          const markdown = await response.text();
-          var content = marked.parse(markdown);
-          content = `<blockquote><code>${decodeURIComponent(path)}</code></blockquote>${content}`;
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(content, 'text/html');
-          const links = doc.querySelectorAll('a[href$=".md"]');
-          links.forEach(link => {
-            var href = link.getAttribute('href');
-            /* 
-              如果 href 是相对路径，则在其前加上当前读取的文档的绝对路径；
-              如果不存在当前读取的文档（默认读取的 index.md 或 README.md），
-              则在其前加上 markdown.html 的绝对路径。
-             */
-            if (isRelativePath(href)) {
-              if (pValue) {
-                href = getDirectory(path) + href;
-              } else {
-                href = getPath() + href;
-              }
-              const absoluteHref = new URL(href, 'http://example.com').pathname;
-              link.setAttribute('href', `${window.location.pathname}?p=${absoluteHref}`);
-            } else if (href.startsWith('/')) {
-              link.setAttribute('href', `${window.location.pathname}?p=${href}`);
-            }
-          });
-          content = doc.body.innerHTML;
-          document.getElementById('c').innerHTML = content;
-          const firstH1 = document.querySelector('h1');
-          document.title = firstH1 ? firstH1.textContent : path;
-          showMarkdownEnded();
-        } catch (error) {
-          document.title = '加载失败'
-          document.getElementById('c').innerHTML = `<h1>加载失败</h1><p>文档<code>${path}</code>可能不存在。您可以尝试<a href="">重试</a>。</p>`;
-          console.error(error);
-        }
-      };
-
-      // 格式化路径
-      function formatPath(path) {
-        if (path) {
-          path = new URL(path, 'http://example.com').pathname;
-          if (!path.endsWith('.md')) {
-            if (!path.endsWith('/')) {
-              path += '/';
-            }
-            path += 'index.md';
-          }
-        }
-        return path;
+      // 处理错误
+      async function handleError(errorMessage) {
+        document.title = '加载失败'
+        document.getElementById('c').innerHTML = `<h1>加载失败</h1><p>加载文档<code>${await getPValue()}</code>时出错：<code>${errorMessage}</code>。您可以尝试<a href="">重新加载</a>或<a id="back-btn">返回</a>。</p>`;
       }
 
+      // 更新页面的 markdown 内容
+      /* 
+        path: 要加载的 markdown 文件路径，最好是带主机名的绝对路径（要用于 fetch()）
+        response: fetch() 的返回值，用于防止二次访问
+       */
+      const showMarkdown = async (mdPath, response = null) => {
+        try {
+          const content = await getMarkdown(mdPath, response);
+          document.getElementById('c').innerHTML = content;
+          const firstH1 = document.querySelector('h1');
+          document.title = firstH1 ? firstH1.textContent : mdPath;
+          showMarkdownEnded();
+          customPushState(window.location.origin + getPath() + '?p=' + mdPath);
+        } catch (error) {
+          handleError(error)
+        }
+      }
+
+      // 读取并解析指定文件
+      const getMarkdown = async (mdPath, response = null) => {
+        if (!response) {
+          response = await fetch(mdPath);
+          if (!response.ok) {
+            throw new Error('请求失败：' + mdPath + '，' + response.status + '，' + response.statusText);
+          }
+        }
+        var content = marked.parse(await response.text());
+        content = `<blockquote><code>${decodeURIComponent(mdPath)}</code></blockquote>${content}`;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        const links = doc.querySelectorAll('a[href$=".md"]');
+        const pValue = await getPValue()
+        links.forEach(link => {
+          var href = link.getAttribute('href');
+          /* 
+            如果 href 是相对路径，则在其前加上当前读取的文档的绝对路径；
+            如果不存在当前读取的文档（默认读取的 index.md 或 README.md），
+            则在其前加上 markdown.html 的绝对路径。
+           */
+          if (isRelativePath(href)) {
+            if (pValue) {
+              href = getDirectory(mdPath) + href;
+            } else {
+              href = getPath() + href;
+            }
+            const absoluteHref = new URL(href, 'http://example.com').pathname;
+            link.setAttribute('href', `${window.location.pathname}?p=${absoluteHref}`);
+          } else if (href.startsWith('/')) {
+            link.setAttribute('href', `${window.location.pathname}?p=${href}`);
+          }
+        });
+        return doc.body.innerHTML;
+      };
+
       // 初始化自定义 PJAX
-      function initCostumedPjax() {
+      function initCustomPJAX() {
+        // 覆写 PJAX 处理响应的函数，在内容插入页面之前实现 markdown 的渲染
+        PJAX._handleResponse = PJAX.handleResponse;
+        PJAX.handleResponse = async function (responseText, request, href, options) {
+          if (request.responseText.startsWith('<!doctype html>\n<html>\n<!-- 作者：PJ568 -->')) {
+            await showMarkdown(await decodeMDPath(href));
+          } else {
+            PJAX._handleResponse(responseText, request, href, options);
+          }
+        }
+        // 监听自定义链接的点击事件
         if (existPushState) {
-          document.querySelector('#c').addEventListener('click', function (event) {
+          document.querySelector('#c').addEventListener('click', async function (event) {
             const link = event.target.closest('a[href$=".md"]');
             if (link) {
               try {
                 event.preventDefault();
                 startLoad();
-                showMarkdown(decodePath(link.href));
-                history.pushState({ url: link.href, title: document.title, uid: link.href }, null, link.href);
+                await showMarkdown(await decodeMDPath(link.href));
               } catch (e) {
                 console.error('自定义 PJAX 出错：' + e);
               }
@@ -278,26 +326,24 @@
         }
       }
 
+      // 自定义推送状态
+      function customPushState(url = window.location.href) {
+        if (existPushState) {
+          if (level > lastLevel) {
+            history.pushState({ url: url, title: document.title, uid: level }, null, url);
+            lastLevel = level++;
+          } else {
+            lastLevel = level - 1;
+          }
+        }
+      }
+
       // 初始化内容
       const initContent = async () => {
         try {
-          if (pValue) {
-            await showMarkdown(pValue);
-          } else {
-            if (existIndexPage) {
-              const response = await fetch(getPath() + 'index.md');
-              if (response.ok) {
-                await showMarkdown(getPath() + 'index.md', response);
-              } else {
-                existIndexPage = false;
-                await showMarkdown(getPath() + 'README.md');
-              }
-            } else {
-              await showMarkdown(getPath() + 'README.md');
-            }
-          }
+          await showMarkdown(await getPValue());
         } catch (error) {
-          console.error(error);
+          handleError('初始化内容时出错：', error);
         }
       };
 
@@ -313,33 +359,27 @@
         initHomeBtn();	//// 初始化返回首页按钮
         initContent();	//// 初始化内容
         initTranslate();	//// 初始化页面翻译
-        initPjax();	//// 初始化 Pjax
-        initCostumedPjax();	//// 初始化自定义 PJAX
-        initAni();	//// 初始化加载动画
-        if (existPushState) {
-          history.pushState({ url: window.location.href, title: document.title, uid: window.location.href }, null, window.location.href);
-        }
+        initPJAX();	//// 初始化 PJAX
+        initCustomPJAX();	//// 初始化自定义 PJAX
       }
 
       // 触发器
-      //// 网页加载完毕后触发
+      //// 网页加载完毕后触发初始化
       window.addEventListener('DOMContentLoaded', () => initialize());
       //// 翻译执行完成后触发
       // translate.listener.renderTaskFinish = function (_task) {
 
       // }
-      //// Pjax 开始时执行的函数
+      //// PJAX 开始时执行的函数
       document.addEventListener('pjax:send', function () {
         startLoad();
       });
-      //// 监听 Pjax 完成后，重新加载
+      //// 监听 PJAX 完成后，重新加载
       document.addEventListener('pjax:complete', function () {
-        initContent();
-        translate.execute();    // 手动触发翻译，但是理论上 translate-js 会监听页面变化
-        initCostumedPjax();	//// 初始化自定义 PJAX
+        initCustomPJAX();	//// 初始化自定义 PJAX
       });
       //// 点击事件委托
-      document.addEventListener('click', function(event) {
+      document.addEventListener('click', function (event) {
         if (event.target.closest('#back-btn')) {
           window.history.back();
         } else if (event.target.closest('#dark_b')) {
@@ -352,9 +392,16 @@
       function showMarkdownEnded() {
         refreshTranslate();
         infoTranslate();	//// 检查并提示翻译
-        translate.execute();    // 手动触发翻译，但是理论上 translate-js 会监听页面变化
+        translate.execute();	//// 手动触发翻译，但是理论上 translate-js 会监听页面变化
         endLoad();
+        document.querySelector('html').classList.add('loaded');	//// 防止缓存的页面被自定义 PJAX 中覆写的处理响应的函数捕获
       }
+      //// 浏览器返回时触发
+      window.onpopstate = function (event) {
+        if (level > 1) {
+          --level;
+        }
+      };
     })();
   </script>
   <title>加载中</title>

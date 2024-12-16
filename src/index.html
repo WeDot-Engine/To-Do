@@ -3,7 +3,7 @@
 <!-- 作者：PJ568 -->
 <!-- 项目地址：https://github.com/PJ-568/markdown.html/ -->
 <!-- 本项目遵循 CC BY-SA 4.0 International 许可协议 -->
-<!-- v 1.0.0 -->
+<!-- v 1.0.1 -->
 
 <head>
   <meta charset="utf-8">
@@ -231,13 +231,6 @@
       // 判断路径是否为相对路径
       const isRelativePath = (path) => !path.startsWith('/');
 
-      // 判断路径是否在本域下
-      const _isSameDomain = (url) => {
-        const currentDomain = window.location.origin;
-        const targetDomain = new URL(url).origin;
-        return currentDomain === targetDomain;
-      }
-
       // 处理错误
       async function handleError(errorMessage) {
         document.title = '加载失败'
@@ -271,7 +264,7 @@
           }
         }
         var content = marked.parse(await response.text());
-        content = `<blockquote><code>${decodeURIComponent(mdPath)}</code></blockquote>${content}`;
+        content = `<pre><code>${decodeURIComponent(mdPath)}</code></pre><hr>${content}`;
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/html');
         const links = doc.querySelectorAll('a[href$=".md"]');
@@ -382,6 +375,8 @@
       document.addEventListener('click', function (event) {
         if (event.target.closest('#back-btn')) {
           window.history.back();
+        } else if (event.target.closest('#refresh-btn')) {
+          window.location.reload();
         } else if (event.target.closest('#dark_b')) {
           darkmode.toggle();
         } else if (event.target.closest('#translate-switch')) {
@@ -395,6 +390,10 @@
         translate.execute();	//// 手动触发翻译，但是理论上 translate-js 会监听页面变化
         endLoad();
         document.querySelector('html').classList.add('loaded');	//// 防止缓存的页面被自定义 PJAX 中覆写的处理响应的函数捕获
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
       }
       //// 浏览器返回时触发
       window.onpopstate = function (event) {
@@ -636,7 +635,7 @@
   <!-- 导航栏 -->
   <nav>
     <a title="返回" id="back-btn"><i class="fa fa-backward"></i></a>
-    <a title="刷新" href=""><i class="fa fa-arrows-rotate"></i></a>
+    <a title="刷新" id="refresh-btn" href=""><i class="fa fa-arrows-rotate"></i></a>
     <a title="主页" id="to-home"><i class="fa fa-home"></i></a>
     <a title="更改语言" id="translate"><i class="fa fa-language"></i></a>
     <a title="切换显示模式" id="dark_b" href="javascript:;"><i class="fa fa-adjust"></i></a>
